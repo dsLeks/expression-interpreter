@@ -4,5 +4,5 @@
 int main()
 {
     Interpreter *interpreter = new Interpreter("input.txt");
-    std::cout << interpreter->expr() << std::endl;
+    interpreter->expr();
 }

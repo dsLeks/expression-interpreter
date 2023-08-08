@@ -33,6 +33,30 @@ public:
     };
 };
 
+class ASTNode
+{
+public:
+    int node_type;
+    int node_val;
+    ASTNode *left;
+    ASTNode *right;
+
+    ASTNode(int type, int val)
+    {
+        this->node_type = type;
+        this->node_val = val;
+        this->left = nullptr;
+        this->right = nullptr;
+    }
+    ASTNode(int type, int val, ASTNode *left, ASTNode *right)
+    {
+        this->node_type = type;
+        this->node_val = val;
+        this->left = left;
+        this->right = right;
+    };
+};
+
 class Interpreter
 {
 public:
@@ -135,14 +159,15 @@ public:
         }
     }
 
-    void factor()
+    // factor : INTEGER | LPAREN expr RPAREN
+    ASTNode *factor()
     {
         this->current_token = get_next_token();
         int exprVal;
         if (current_token.token_type == LPAREN)
         {
             this->validate(LPAREN);
-            exprVal = this->expr();
+            this->expr();
         }
         if (current_token.token_type == RPAREN)
         {
@@ -152,50 +177,68 @@ public:
         }
 
         this->validate(INTEGER);
+        return new ASTNode(INTEGER, this->current_token.value);
     }
 
-    int term()
+    // term : factor ((MULTIPLY | DIVIDE) factor)*
+    ASTNode *term()
     {
-        this->factor();
-        int val = this->current_token.value;
+        ASTNode *left = this->factor();
+        ASTNode *binaryNode = nullptr;
+        // int val = this->current_token.value;
         this->current_token = get_next_token();
         while (this->current_token.token_type == MULTIPLY || this->current_token.token_type == DIVIDE)
         {
             if (this->current_token.token_type == MULTIPLY)
             {
                 this->validate(MULTIPLY);
-                factor();
-                val *= this->current_token.value;
+                ASTNode *right = this->factor();
+                binaryNode = new ASTNode(MULTIPLY, '*', left, right);
             }
             else if (this->current_token.token_type == DIVIDE)
             {
                 this->validate(DIVIDE);
-                factor();
-                val /= this->current_token.value;
+                ASTNode *right = this->factor();
+                binaryNode = new ASTNode(DIVIDE, '*', left, right);
             }
             this->current_token = this->get_next_token();
         }
 
-        return val;
+        return (binaryNode == nullptr) ? left : binaryNode;
     }
 
-    int expr()
+    void printTree(ASTNode *root)
     {
-        int val = this->term();
+        if (root == nullptr)
+            return;
+        printTree(root->left);
+        std::cout << "Node Type is: " << root->node_type << " Node Value is: " << root->node_val << std::endl;
+        printTree(root->right);
+    }
+
+    // expr : term ((PLUS | MINUS) term)*
+    void expr()
+    {
+        ASTNode *left = this->term();
+        ASTNode *binaryNode = nullptr;
         while (this->current_token.token_type == PLUS || this->current_token.token_type == MINUS)
         {
             if (this->current_token.token_type == PLUS)
             {
                 this->validate(PLUS);
-                val += this->term();
+                ASTNode *right = this->term();
+                binaryNode = new ASTNode(PLUS, '+', left, right);
             }
             else if (this->current_token.token_type == MINUS)
             {
                 this->validate(MINUS);
-                val -= this->term();
+                ASTNode *right = this->term();
+                binaryNode = new ASTNode(MINUS, '-', left, right);
             }
+
+            left = binaryNode;
         }
 
-        return val;
+        printTree(left);
     };
 };
