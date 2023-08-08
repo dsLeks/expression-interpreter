@@ -4,6 +4,9 @@ enum
 {
     INTEGER,
     PLUS,
+    MINUS,
+    MULTIPLY,
+    DIVIDE,
     END_OF_FILE,
     NONE
 };
@@ -44,6 +47,7 @@ public:
     void error()
     {
         printf("Error parsing input\n");
+        exit(1);
     };
 
     Token get_next_token()
@@ -52,21 +56,42 @@ public:
         int value;
 
         ch = getc(this->fp);
+        while (ch == ' ')
+        {
+            this->pos++;
+            ch = getc(this->fp);
+        }
         if (ch == EOF)
         {
             this->pos++;
             return Token(END_OF_FILE, -1);
         }
-        if (ch == ' ')
-        {
-            this->pos++;
-        }
+
         if (ch == '+')
         {
             this->pos++;
             return Token(PLUS, (int)ch);
         }
-        if (ch >= '0' && ch <= '9')
+
+        if (ch == '-')
+        {
+            this->pos++;
+            return Token(MINUS, (int)ch);
+        }
+
+        if (ch == '*')
+        {
+            this->pos++;
+            return Token(MULTIPLY, (int)ch);
+        }
+
+        if (ch == '/')
+        {
+            this->pos++;
+            return Token(DIVIDE, (int)ch);
+        }
+
+        while (ch >= '0' && ch <= '9')
         {
             this->pos++;
             value = ch - '0';
@@ -88,22 +113,68 @@ public:
             return Token(INTEGER, value);
         }
     };
-    void eat(int token_type)
+    void validate(int token_type)
     {
-        if (this->current_token.token_type == token_type)
+        if (this->current_token.token_type != token_type)
         {
-            this->current_token = this->get_next_token();
-        };
+            this->error();
+        }
     }
 
     int expr()
     {
-        this->current_token = this->get_next_token();
-        int left = this->current_token.value;
-        this->eat(INTEGER);
-        this->eat(PLUS);
-        int right = this->current_token.value;
+        this->current_token = Token(NONE, -1);
+        int val = 0;
+        int op = NONE;
+        while (this->current_token.token_type != END_OF_FILE)
+        {
+            this->current_token = this->get_next_token();
+            if (this->current_token.token_type == END_OF_FILE)
+                break;
+            switch (this->current_token.token_type)
+            {
+            case INTEGER:
+                this->validate(INTEGER);
+                if (op == NONE)
+                    val = this->current_token.value;
+                else
+                {
+                    switch (op)
+                    {
+                    case PLUS:
+                        val += this->current_token.value;
+                        break;
+                    case MINUS:
+                        val -= this->current_token.value;
+                        break;
+                    case MULTIPLY:
+                        val *= this->current_token.value;
+                        break;
+                    case DIVIDE:
+                        val /= this->current_token.value;
+                        break;
+                    };
+                }
+                break;
+            case PLUS:
+                this->validate(PLUS);
+                op = PLUS;
+                break;
+            case MINUS:
+                this->validate(MINUS);
+                op = MINUS;
+                break;
+            case MULTIPLY:
+                this->validate(MULTIPLY);
+                op = MULTIPLY;
+                break;
+            case DIVIDE:
+                this->validate(DIVIDE);
+                op = DIVIDE;
+                break;
+            };
+        }
 
-        return left + right;
+        return val;
     };
 };
