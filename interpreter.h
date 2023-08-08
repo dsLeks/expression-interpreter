@@ -7,6 +7,8 @@ enum
     MINUS,
     MULTIPLY,
     DIVIDE,
+    LPAREN,
+    RPAREN,
     END_OF_FILE,
     NONE
 };
@@ -85,6 +87,18 @@ public:
             return Token(MULTIPLY, (int)ch);
         }
 
+        if (ch == '(')
+        {
+            this->pos++;
+            return Token(LPAREN, (int)ch);
+        }
+
+        if (ch == ')')
+        {
+            this->pos++;
+            return Token(RPAREN, (int)ch);
+        }
+
         if (ch == '/')
         {
             this->pos++;
@@ -124,12 +138,25 @@ public:
     void factor()
     {
         this->current_token = get_next_token();
+        int exprVal;
+        if (current_token.token_type == LPAREN)
+        {
+            this->validate(LPAREN);
+            exprVal = this->expr();
+        }
+        if (current_token.token_type == RPAREN)
+        {
+            this->validate(RPAREN);
+            current_token.value = exprVal;
+            current_token.token_type = INTEGER;
+        }
+
         this->validate(INTEGER);
     }
 
-    int expr()
+    int term()
     {
-        factor();
+        this->factor();
         int val = this->current_token.value;
         this->current_token = get_next_token();
         while (this->current_token.token_type == MULTIPLY || this->current_token.token_type == DIVIDE)
@@ -147,6 +174,26 @@ public:
                 val /= this->current_token.value;
             }
             this->current_token = this->get_next_token();
+        }
+
+        return val;
+    }
+
+    int expr()
+    {
+        int val = this->term();
+        while (this->current_token.token_type == PLUS || this->current_token.token_type == MINUS)
+        {
+            if (this->current_token.token_type == PLUS)
+            {
+                this->validate(PLUS);
+                val += this->term();
+            }
+            else if (this->current_token.token_type == MINUS)
+            {
+                this->validate(MINUS);
+                val -= this->term();
+            }
         }
 
         return val;
