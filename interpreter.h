@@ -121,58 +121,32 @@ public:
         }
     }
 
+    void factor()
+    {
+        this->current_token = get_next_token();
+        this->validate(INTEGER);
+    }
+
     int expr()
     {
-        this->current_token = Token(NONE, -1);
-        int val = 0;
-        int op = NONE;
-        while (this->current_token.token_type != END_OF_FILE)
+        factor();
+        int val = this->current_token.value;
+        this->current_token = get_next_token();
+        while (this->current_token.token_type == MULTIPLY || this->current_token.token_type == DIVIDE)
         {
-            this->current_token = this->get_next_token();
-            if (this->current_token.token_type == END_OF_FILE)
-                break;
-            switch (this->current_token.token_type)
+            if (this->current_token.token_type == MULTIPLY)
             {
-            case INTEGER:
-                this->validate(INTEGER);
-                if (op == NONE)
-                    val = this->current_token.value;
-                else
-                {
-                    switch (op)
-                    {
-                    case PLUS:
-                        val += this->current_token.value;
-                        break;
-                    case MINUS:
-                        val -= this->current_token.value;
-                        break;
-                    case MULTIPLY:
-                        val *= this->current_token.value;
-                        break;
-                    case DIVIDE:
-                        val /= this->current_token.value;
-                        break;
-                    };
-                }
-                break;
-            case PLUS:
-                this->validate(PLUS);
-                op = PLUS;
-                break;
-            case MINUS:
-                this->validate(MINUS);
-                op = MINUS;
-                break;
-            case MULTIPLY:
                 this->validate(MULTIPLY);
-                op = MULTIPLY;
-                break;
-            case DIVIDE:
+                factor();
+                val *= this->current_token.value;
+            }
+            else if (this->current_token.token_type == DIVIDE)
+            {
                 this->validate(DIVIDE);
-                op = DIVIDE;
-                break;
-            };
+                factor();
+                val /= this->current_token.value;
+            }
+            this->current_token = this->get_next_token();
         }
 
         return val;
