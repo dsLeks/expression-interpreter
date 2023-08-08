@@ -199,9 +199,11 @@ public:
             {
                 this->validate(DIVIDE);
                 ASTNode *right = this->factor();
-                binaryNode = new ASTNode(DIVIDE, '*', left, right);
+                binaryNode = new ASTNode(DIVIDE, '/', left, right);
             }
-            this->current_token = this->get_next_token();
+
+            left = binaryNode;
+            this->current_token = get_next_token();
         }
 
         return (binaryNode == nullptr) ? left : binaryNode;
@@ -237,6 +239,7 @@ public:
             }
 
             left = binaryNode;
+            this->current_token = get_next_token();
         }
 
         printTree(left);
