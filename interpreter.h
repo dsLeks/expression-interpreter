@@ -60,6 +60,7 @@ public:
 class Interpreter
 {
 public:
+    int expVal;
     FILE *fp;
     int pos;
     Token current_token;
@@ -68,6 +69,7 @@ public:
         this->fp = fopen(filename, "r");
         this->pos = 0;
         this->current_token = Token(NONE, -1);
+        this->expVal = 0;
     };
 
     void error()
@@ -155,6 +157,7 @@ public:
     {
         if (this->current_token.token_type != token_type)
         {
+            // std::cout << "current_token.tokey_type: " << this->current_token.token_type << " token_type: " << token_type << "\n";
             this->error();
         }
     }
@@ -163,20 +166,28 @@ public:
     ASTNode *factor()
     {
         this->current_token = get_next_token();
-        int exprVal;
+
+        //           << std::endl;
+        // int exprVal;
+        ASTNode *binaryNode = nullptr;
         if (current_token.token_type == LPAREN)
         {
             this->validate(LPAREN);
-            this->expr();
+            binaryNode = this->expr();
+
+            // this->current_token = get_next_token();
         }
         if (current_token.token_type == RPAREN)
         {
+
             this->validate(RPAREN);
-            current_token.value = exprVal;
-            current_token.token_type = INTEGER;
+
+            return binaryNode;
         }
 
         this->validate(INTEGER);
+        // std::cout << "failing here!! " << std::endl
+        //           << std::endl;
         return new ASTNode(INTEGER, this->current_token.value);
     }
 
@@ -197,7 +208,9 @@ public:
             }
             else if (this->current_token.token_type == DIVIDE)
             {
+                // std::cout << "HERE!" << std::endl;
                 this->validate(DIVIDE);
+
                 ASTNode *right = this->factor();
                 binaryNode = new ASTNode(DIVIDE, '/', left, right);
             }
@@ -206,20 +219,37 @@ public:
             this->current_token = get_next_token();
         }
 
-        return (binaryNode == nullptr) ? left : binaryNode;
+        return left;
     }
 
-    void printTree(ASTNode *root)
+    int printExpValue(ASTNode *root)
     {
         if (root == nullptr)
-            return;
-        printTree(root->left);
-        std::cout << "Node Type is: " << root->node_type << " Node Value is: " << root->node_val << std::endl;
-        printTree(root->right);
+            return INT_MIN;
+        int leftVal = printExpValue(root->left);
+        int rightVal = printExpValue(root->right);
+
+        switch (root->node_type)
+        {
+        case INTEGER:
+            return root->node_val;
+        case PLUS:
+            return leftVal + rightVal;
+        case MINUS:
+            return leftVal - rightVal;
+        case MULTIPLY:
+            return leftVal * rightVal;
+        case DIVIDE:
+            return leftVal / rightVal;
+        default:
+            return 0;
+        }
+
+        return INT_MIN;
     }
 
     // expr : term ((PLUS | MINUS) term)*
-    void expr()
+    ASTNode *expr()
     {
         ASTNode *left = this->term();
         ASTNode *binaryNode = nullptr;
@@ -239,9 +269,9 @@ public:
             }
 
             left = binaryNode;
-            this->current_token = get_next_token();
+            // this->current_token = get_next_token();
         }
 
-        printTree(left);
+        return left;
     };
 };

@@ -4,5 +4,6 @@
 int main()
 {
     Interpreter *interpreter = new Interpreter("input.txt");
-    interpreter->expr();
+    ASTNode *root = interpreter->expr();
+    std::cout << interpreter->printExpValue(root) << std::endl;
 }
