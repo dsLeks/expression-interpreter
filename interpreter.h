@@ -162,7 +162,7 @@ public:
         }
     }
 
-    // factor : INTEGER | LPAREN expr RPAREN
+    // factor : (PLUS | MINUS) factor | INTEGER | LPAREN expr RPAREN
     ASTNode *factor()
     {
         this->current_token = get_next_token();
@@ -170,6 +170,24 @@ public:
         //           << std::endl;
         // int exprVal;
         ASTNode *binaryNode = nullptr;
+        if (current_token.token_type == PLUS)
+        {
+            this->validate(PLUS);
+            ASTNode *node = new ASTNode(PLUS, current_token.value);
+            node->right = this->factor();
+            node->left = new ASTNode(INTEGER, 0);
+            return node;
+        }
+        if (current_token.token_type == MINUS)
+        {
+
+            this->validate(MINUS);
+            ASTNode *node = new ASTNode(MINUS, current_token.value);
+            node->right = this->factor();
+            node->left = new ASTNode(INTEGER, 0);
+            return node;
+        }
+
         if (current_token.token_type == LPAREN)
         {
             this->validate(LPAREN);
