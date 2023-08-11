@@ -4,6 +4,7 @@
 int main()
 {
     Interpreter *interpreter = new Interpreter("input.txt");
-    ASTNode *root = interpreter->expr();
-    std::cout << interpreter->printExpValue(root) << std::endl;
+    interpreter->interpret();
 }
+
+// 7 + 3 * (10 / (12 / (3 + 1) - 1))
