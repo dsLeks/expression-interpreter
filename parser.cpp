@@ -120,3 +120,12 @@ ASTNode *Parser::expr()
 
     return left;
 }
+
+ASTNode *Parser::parse()
+{
+    current_token = lexer->get_next_token();
+    if (current_token->token_type == BEGIN)
+    {
+        std::cout << "BEGIN" << std::endl;
+    }
+}

@@ -1,4 +1,5 @@
 #include <string>
+#include <unordered_map>
 
 enum
 {
@@ -32,10 +33,11 @@ public:
 class Lexer
 {
 public:
+    std::unordered_map<std::string, int> reserved_keywords;
     int pos; // index into text
     FILE *fp;
     Lexer(const char *filename);
-    void peek();
+    char peek();
     Token *get_next_token();
     void validate();
 };
@@ -62,6 +64,7 @@ public:
     ASTNode *factor();
     ASTNode *term();
     ASTNode *expr();
+    ASTNode *parse();
 };
 
 class Interpreter

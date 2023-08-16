@@ -5,6 +5,15 @@ Lexer::Lexer(const char *filename)
 {
     fp = fopen(filename, "r");
     pos = 0;
+    reserved_keywords["BEGIN"] = 1;
+    reserved_keywords["END"] = 1;
+}
+
+char Lexer::peek()
+{
+    char ch = getc(fp);
+    ungetc(ch, fp);
+    return ch;
 }
 
 Token *Lexer::get_next_token()
@@ -81,5 +90,30 @@ Token *Lexer::get_next_token()
         }
 
         return new Token(INTEGER, value);
+    }
+
+    if ((ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z'))
+    {
+        std::string str = "";
+        while ((ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z'))
+        {
+            str += ch;
+            pos++;
+            ch = fgetc(fp);
+        }
+        ungetc(ch, fp);
+        if (reserved_keywords.find(str) != reserved_keywords.end())
+        {
+            // return new Token(str == "BEGIN" ? BEGIN : END, -1);
+            if (str == "BEGIN")
+            {
+                return new Token(BEGIN, -1);
+            }
+            else if (str == "END")
+            {
+                return new Token(END, -1);
+            }
+        }
+        return new Token(IDENTIFIER, -1);
     }
 }
