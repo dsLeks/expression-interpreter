@@ -34,7 +34,5 @@ int Interpreter::traverse(ASTNode *root)
 
 void Interpreter::interpret()
 {
-    // ASTNode *root = parser->expr();                                               // parse the expression
-    // int expression_value = traverse(root);                                        // calculate the expression value
     parser->parse();
 }

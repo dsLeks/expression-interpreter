@@ -123,9 +123,9 @@ ASTNode *Parser::expr()
 
 ASTNode *Parser::parse()
 {
-    current_token = lexer->get_next_token();
-    if (current_token->token_type == BEGIN)
+    while (current_token->token_type != END_OF_FILE)
     {
-        std::cout << "BEGIN" << std::endl;
+        current_token = lexer->get_next_token();
+        std::cout << current_token->token_to_string() << std::endl;
     }
 }

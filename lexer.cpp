@@ -104,7 +104,6 @@ Token *Lexer::get_next_token()
         ungetc(ch, fp);
         if (reserved_keywords.find(str) != reserved_keywords.end())
         {
-            // return new Token(str == "BEGIN" ? BEGIN : END, -1);
             if (str == "BEGIN")
             {
                 return new Token(BEGIN, -1);
@@ -114,6 +113,30 @@ Token *Lexer::get_next_token()
                 return new Token(END, -1);
             }
         }
-        return new Token(IDENTIFIER, -1);
+    }
+
+    if (ch == '.')
+        return new Token(DOT, -1);
+    else if (ch == ':')
+    {
+        pos++;
+        ch = fgetc(fp);
+        if (ch == '=')
+        {
+            return new Token(ASSIGNMENT, -1);
+        }
+        else
+        {
+            ungetc(ch, fp);
+            return new Token(NONE, -1);
+        }
+    }
+    else if (ch == ';')
+    {
+        return new Token(SEMICOLON, -1);
+    }
+    else
+    {
+        return new Token(NONE, -1);
     }
 }
